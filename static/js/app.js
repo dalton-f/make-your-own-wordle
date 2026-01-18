@@ -20,7 +20,21 @@ __webpack_require__.r(__webpack_exports__);
   \***********************/
 () {
 
+var board = document.getElementById("board");
+var rows = 6; // Number of attempts/guesses the user has
+var cols = 5; // Length of the word
 
+for (var i = 0; i < rows; i++) {
+  var row = document.createElement("div");
+  row.className = "row";
+  for (var j = 0; j < cols; j++) {
+    var tile = document.createElement("div");
+    tile.className = "tile";
+    tile.dataset.state = "empty";
+    row.appendChild(tile);
+  }
+  board.appendChild(row);
+}
 
 /***/ }
 
