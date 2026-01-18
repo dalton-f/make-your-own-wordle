@@ -41,7 +41,6 @@ var currentCol = 0;
 var currentGuess = "";
 var correctWord = _possibleSolutions__WEBPACK_IMPORTED_MODULE_1__["default"][Math.floor(Math.random() * _possibleSolutions__WEBPACK_IMPORTED_MODULE_1__["default"].length)].toUpperCase();
 var initializeBoard = function initializeBoard() {
-  console.log(correctWord);
   var fragment = document.createDocumentFragment();
   for (var i = 0; i < rows; i++) {
     var row = document.createElement("div");
@@ -95,16 +94,35 @@ var submitGuess = function submitGuess() {
     if (!guessIsLegal) return;
   }
 
-  // Compares the current guess to the correct word
+  // Track remaining letters in correctWord
+  var remainingLetters = correctWord.split("");
+
+  // First pass to mark correct letters
   for (var i = 0; i < cols; i++) {
     var letter = currentGuess[i];
-    // Ensures we keep track of the correct tile to change the state of within the current row
     var tile = document.querySelector("[data-id=\"".concat(currentRow).concat(i, "\"]"));
+    if (correctWord[i] === letter) {
+      tile.dataset.state = "correct";
+      // Remove this letter so it can't be remarked
+      remainingLetters[i] = null;
+    }
+  }
 
-    // Update state accordingly
-    var state = "absent";
-    if (correctWord[i] === letter) state = "correct";else if (correctWord.includes(letter)) state = "present";
-    tile.dataset.state = state;
+  // Second pass to mark present or absent letters
+  for (var _i = 0; _i < cols; _i++) {
+    var _letter = currentGuess[_i];
+    var _tile = document.querySelector("[data-id=\"".concat(currentRow).concat(_i, "\"]"));
+
+    // Skip letters already marked correct
+    if (_tile.dataset.state === "correct") continue;
+    var index = remainingLetters.indexOf(_letter);
+    if (index !== -1) {
+      _tile.dataset.state = "present";
+      // Consume letter so duplicate marking doesn't occur - ie. both T's in TAUNT get marked for the comparison to JAUNT
+      remainingLetters[index] = null;
+    } else {
+      _tile.dataset.state = "absent";
+    }
   }
 
   // Update row and column values to allow for the next guess

@@ -23,8 +23,6 @@ let correctWord =
   ].toUpperCase();
 
 const initializeBoard = () => {
-  console.log(correctWord);
-
   const fragment = document.createDocumentFragment();
 
   for (let i = 0; i < rows; i++) {
@@ -94,19 +92,38 @@ const submitGuess = () => {
     if (!guessIsLegal) return;
   }
 
-  // Compares the current guess to the correct word
+  // Track remaining letters in correctWord
+  const remainingLetters = correctWord.split("");
+
+  // First pass to mark correct letters
   for (let i = 0; i < cols; i++) {
     const letter = currentGuess[i];
-    // Ensures we keep track of the correct tile to change the state of within the current row
     const tile = document.querySelector(`[data-id="${currentRow}${i}"]`);
 
-    // Update state accordingly
-    let state = "absent";
+    if (correctWord[i] === letter) {
+      tile.dataset.state = "correct";
+      // Remove this letter so it can't be remarked
+      remainingLetters[i] = null;
+    }
+  }
 
-    if (correctWord[i] === letter) state = "correct";
-    else if (correctWord.includes(letter)) state = "present";
+  // Second pass to mark present or absent letters
+  for (let i = 0; i < cols; i++) {
+    const letter = currentGuess[i];
+    const tile = document.querySelector(`[data-id="${currentRow}${i}"]`);
 
-    tile.dataset.state = state;
+    // Skip letters already marked correct
+    if (tile.dataset.state === "correct") continue;
+
+    const index = remainingLetters.indexOf(letter);
+
+    if (index !== -1) {
+      tile.dataset.state = "present";
+      // Consume letter so duplicate marking doesn't occur - ie. both T's in TAUNT get marked for the comparison to JAUNT
+      remainingLetters[index] = null;
+    } else {
+      tile.dataset.state = "absent";
+    }
   }
 
   // Update row and column values to allow for the next guess
