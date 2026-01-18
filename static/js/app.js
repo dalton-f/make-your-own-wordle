@@ -4870,15 +4870,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 var board = document.getElementById("board");
-var rows = 6; // Number of attempts/guesses the user has
-var cols = 5; // Length of the word
-
+var NUMBER_OF_ATTEMPTS = 6;
+var DEFAULT_LENGTH_OF_WORD = 5;
 var currentRow = 0;
 var currentCol = 0;
 var currentGuess = "";
-var correctWord = _possibleSolutions__WEBPACK_IMPORTED_MODULE_2__["default"][Math.floor(Math.random() * _possibleSolutions__WEBPACK_IMPORTED_MODULE_2__["default"].length)].toUpperCase();
+var correctWord;
 var initializeBoard = function initializeBoard() {
-  console.log(correctWord);
+  var rows = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : NUMBER_OF_ATTEMPTS;
+  var cols = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : DEFAULT_LENGTH_OF_WORD;
   board.innerHTML = "";
   var fragment = document.createDocumentFragment();
   for (var i = 0; i < rows; i++) {
@@ -4907,7 +4907,7 @@ var deleteLetter = function deleteLetter() {
   currentGuess = currentGuess.substring(0, currentGuess.length - 1);
 };
 var addLetter = function addLetter(event) {
-  if (currentCol >= cols) return;
+  if (currentCol >= correctWord.length) return;
 
   // Add the input letter to the correct tile
   var targetTile = fetchTargetTile();
@@ -4923,12 +4923,9 @@ var fetchTargetTile = function fetchTargetTile() {
   var targetTile = document.querySelector("[data-id=\"".concat(currentRow).concat(currentCol, "\"]"));
   return targetTile;
 };
-var generateLink = function generateLink(word) {
-  console.log(word);
-};
 var submitGuess = function submitGuess() {
   // If the word is too short, ignore it
-  if (currentGuess.length < cols) {
+  if (currentGuess.length < correctWord.length) {
     sweetalert2__WEBPACK_IMPORTED_MODULE_0___default().fire({
       theme: "dark",
       text: "Not enough letters!",
@@ -4941,7 +4938,7 @@ var submitGuess = function submitGuess() {
   }
 
   // Only check for legal word guesses for standard 5 letter Wordles
-  if (cols === 5) {
+  if (correctWord.length === DEFAULT_LENGTH_OF_WORD) {
     var guessIsLegal = _possibleSolutions__WEBPACK_IMPORTED_MODULE_2__["default"].includes(currentGuess.toLowerCase()) || _legalGuesses__WEBPACK_IMPORTED_MODULE_1__["default"].includes(currentGuess.toLowerCase());
     if (!guessIsLegal) {
       sweetalert2__WEBPACK_IMPORTED_MODULE_0___default().fire({
@@ -4960,7 +4957,7 @@ var submitGuess = function submitGuess() {
   var remainingLetters = correctWord.split("");
 
   // First pass to mark correct letters
-  for (var i = 0; i < cols; i++) {
+  for (var i = 0; i < correctWord.length; i++) {
     var letter = currentGuess[i];
     var tile = document.querySelector("[data-id=\"".concat(currentRow).concat(i, "\"]"));
     if (correctWord[i] === letter) {
@@ -4971,7 +4968,7 @@ var submitGuess = function submitGuess() {
   }
 
   // Second pass to mark present or absent letters
-  for (var _i = 0; _i < cols; _i++) {
+  for (var _i = 0; _i < correctWord.length; _i++) {
     var _letter = currentGuess[_i];
     var _tile = document.querySelector("[data-id=\"".concat(currentRow).concat(_i, "\"]"));
 
@@ -4987,6 +4984,7 @@ var submitGuess = function submitGuess() {
     }
   }
 
+  // The Swal code below isn't at all necessary, or important to the actual game logic, just helps for interactions and giving the user some information
   // Handle the sucess modal
   if (currentGuess === correctWord) {
     sweetalert2__WEBPACK_IMPORTED_MODULE_0___default().fire({
@@ -4997,17 +4995,30 @@ var submitGuess = function submitGuess() {
       showCancelButton: true,
       allowEscapeKey: false,
       allowOutsideClick: false,
-      confirmButtonColor: "#279b4e",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Generate link",
-      cancelButtonText: "Play random"
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#279b4e",
+      confirmButtonText: "Play random",
+      cancelButtonText: "Generate link",
+      reverseButtons: true
     }).then(function (result) {
-      if (result.isConfirmed) {
+      if (result.isConfirmed) resetGame();
+      if (result.dismiss === (sweetalert2__WEBPACK_IMPORTED_MODULE_0___default().DismissReason).cancel) {
         // Handle the link generation modal
         sweetalert2__WEBPACK_IMPORTED_MODULE_0___default().fire({
           title: "Make your own Wordle",
           text: "Words can be of any length",
           input: "text",
+          inputValidator: function inputValidator(value) {
+            if (!value) {
+              return "You need to write something!";
+            }
+            if (/\s/.test(value)) {
+              return "Spaces are not allowed. Enter a single word.";
+            }
+            if (!/^[A-Za-z]+$/.test(value)) {
+              return "Only letters are allowed. No spaces, numbers, or symbols.";
+            }
+          },
           theme: "dark",
           width: 400,
           icon: "question",
@@ -5020,7 +5031,6 @@ var submitGuess = function submitGuess() {
         // For safety, also reset the base game here in case the user someone closes out - they can still play
         resetGame();
       }
-      if (result.dismiss === (sweetalert2__WEBPACK_IMPORTED_MODULE_0___default().DismissReason).cancel) resetGame();
     });
   }
 
@@ -5029,14 +5039,55 @@ var submitGuess = function submitGuess() {
   currentCol = 0;
   currentGuess = "";
 };
+var base64Encode = function base64Encode(str) {
+  var bytes = new TextEncoder().encode(str);
+  var binary = "";
+  bytes.forEach(function (b) {
+    return binary += String.fromCharCode(b);
+  });
+  return btoa(binary);
+};
+var base64Decode = function base64Decode(base64) {
+  var binary = atob(base64);
+  var bytes = Uint8Array.from(binary, function (c) {
+    return c.charCodeAt(0);
+  });
+  return new TextDecoder().decode(bytes);
+};
+var generateLink = function generateLink(word) {
+  var encodedData = base64Encode(word);
+  var urlSafeData = encodeURIComponent(encodedData);
+  console.log(word);
+  console.log(encodedData);
+  console.log(urlSafeData);
+  var url = new URL(window.location.href);
+  url.searchParams.set("payload", urlSafeData);
+  window.location.href = url.toString();
+};
 var resetGame = function resetGame() {
+  var rows = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : NUMBER_OF_ATTEMPTS;
+  var cols = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : DEFAULT_LENGTH_OF_WORD;
+  var chosenWord = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : "";
   currentCol = 0;
   currentRow = 0;
   currentGuess = "";
-  correctWord = _possibleSolutions__WEBPACK_IMPORTED_MODULE_2__["default"][Math.floor(Math.random() * _possibleSolutions__WEBPACK_IMPORTED_MODULE_2__["default"].length)].toUpperCase();
-  initializeBoard();
+  correctWord = chosenWord.toUpperCase() || _possibleSolutions__WEBPACK_IMPORTED_MODULE_2__["default"][Math.floor(Math.random() * _possibleSolutions__WEBPACK_IMPORTED_MODULE_2__["default"].length)].toUpperCase();
+  initializeBoard(rows, cols);
 };
-resetGame();
+document.addEventListener("DOMContentLoaded", function () {
+  // Check URL for payload from a generated link
+  var params = new URLSearchParams(window.location.search);
+  var urlSafeBase64 = params.get("payload");
+  if (!urlSafeBase64) {
+    resetGame();
+    return;
+  }
+
+  // Decode is and overwrite resetGame for custom word and length
+  var base64 = decodeURIComponent(urlSafeBase64);
+  var decoded = base64Decode(base64);
+  resetGame(NUMBER_OF_ATTEMPTS, decoded.length, decoded);
+});
 document.addEventListener("keydown", function (event) {
   event.preventDefault();
   if (event.key === "Backspace") deleteLetter();

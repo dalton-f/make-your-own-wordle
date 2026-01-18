@@ -11,21 +11,19 @@ import possibleSolutions from "./possibleSolutions";
 
 const board = document.getElementById("board");
 
-const rows = 6; // Number of attempts/guesses the user has
-const cols = 5; // Length of the word
+const NUMBER_OF_ATTEMPTS = 6;
+const DEFAULT_LENGTH_OF_WORD = 5;
 
 let currentRow = 0;
 let currentCol = 0;
 let currentGuess = "";
 
-let correctWord =
-  possibleSolutions[
-    Math.floor(Math.random() * possibleSolutions.length)
-  ].toUpperCase();
+let correctWord;
 
-const initializeBoard = () => {
-  console.log(correctWord);
-
+const initializeBoard = (
+  rows = NUMBER_OF_ATTEMPTS,
+  cols = DEFAULT_LENGTH_OF_WORD,
+) => {
   board.innerHTML = "";
 
   const fragment = document.createDocumentFragment();
@@ -63,7 +61,7 @@ const deleteLetter = () => {
 };
 
 const addLetter = (event) => {
-  if (currentCol >= cols) return;
+  if (currentCol >= correctWord.length) return;
 
   // Add the input letter to the correct tile
   const targetTile = fetchTargetTile();
@@ -84,13 +82,9 @@ const fetchTargetTile = () => {
   return targetTile;
 };
 
-const generateLink = (word) => {
-  console.log(word);
-};
-
 const submitGuess = () => {
   // If the word is too short, ignore it
-  if (currentGuess.length < cols) {
+  if (currentGuess.length < correctWord.length) {
     Swal.fire({
       theme: "dark",
       text: "Not enough letters!",
@@ -104,7 +98,7 @@ const submitGuess = () => {
   }
 
   // Only check for legal word guesses for standard 5 letter Wordles
-  if (cols === 5) {
+  if (correctWord.length === DEFAULT_LENGTH_OF_WORD) {
     const guessIsLegal =
       possibleSolutions.includes(currentGuess.toLowerCase()) ||
       legalGuesses.includes(currentGuess.toLowerCase());
@@ -127,7 +121,7 @@ const submitGuess = () => {
   const remainingLetters = correctWord.split("");
 
   // First pass to mark correct letters
-  for (let i = 0; i < cols; i++) {
+  for (let i = 0; i < correctWord.length; i++) {
     const letter = currentGuess[i];
     const tile = document.querySelector(`[data-id="${currentRow}${i}"]`);
 
@@ -139,7 +133,7 @@ const submitGuess = () => {
   }
 
   // Second pass to mark present or absent letters
-  for (let i = 0; i < cols; i++) {
+  for (let i = 0; i < correctWord.length; i++) {
     const letter = currentGuess[i];
     const tile = document.querySelector(`[data-id="${currentRow}${i}"]`);
 
@@ -157,6 +151,7 @@ const submitGuess = () => {
     }
   }
 
+  // The Swal code below isn't at all necessary, or important to the actual game logic, just helps for interactions and giving the user some information
   // Handle the sucess modal
   if (currentGuess === correctWord) {
     Swal.fire({
@@ -167,17 +162,33 @@ const submitGuess = () => {
       showCancelButton: true,
       allowEscapeKey: false,
       allowOutsideClick: false,
-      confirmButtonColor: "#279b4e",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Generate link",
-      cancelButtonText: "Play random",
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#279b4e",
+      confirmButtonText: "Play random",
+      cancelButtonText: "Generate link",
+      reverseButtons: true,
     }).then((result) => {
-      if (result.isConfirmed) {
+      if (result.isConfirmed) resetGame();
+
+      if (result.dismiss === Swal.DismissReason.cancel) {
         // Handle the link generation modal
         Swal.fire({
           title: "Make your own Wordle",
           text: "Words can be of any length",
           input: "text",
+          inputValidator: (value) => {
+            if (!value) {
+              return "You need to write something!";
+            }
+
+            if (/\s/.test(value)) {
+              return "Spaces are not allowed. Enter a single word.";
+            }
+
+            if (!/^[A-Za-z]+$/.test(value)) {
+              return "Only letters are allowed. No spaces, numbers, or symbols.";
+            }
+          },
           theme: "dark",
           width: 400,
           icon: "question",
@@ -190,8 +201,6 @@ const submitGuess = () => {
         // For safety, also reset the base game here in case the user someone closes out - they can still play
         resetGame();
       }
-
-      if (result.dismiss === Swal.DismissReason.cancel) resetGame();
     });
   }
 
@@ -201,20 +210,68 @@ const submitGuess = () => {
   currentGuess = "";
 };
 
-const resetGame = () => {
+const base64Encode = (str) => {
+  const bytes = new TextEncoder().encode(str);
+  let binary = "";
+  bytes.forEach((b) => (binary += String.fromCharCode(b)));
+  return btoa(binary);
+};
+
+const base64Decode = (base64) => {
+  const binary = atob(base64);
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+};
+
+const generateLink = (word) => {
+  const encodedData = base64Encode(word);
+  const urlSafeData = encodeURIComponent(encodedData);
+
+  console.log(word);
+
+  console.log(encodedData);
+  console.log(urlSafeData);
+
+  const url = new URL(window.location.href);
+  url.searchParams.set("payload", urlSafeData);
+
+  window.location.href = url.toString();
+};
+
+const resetGame = (
+  rows = NUMBER_OF_ATTEMPTS,
+  cols = DEFAULT_LENGTH_OF_WORD,
+  chosenWord = "",
+) => {
   currentCol = 0;
   currentRow = 0;
   currentGuess = "";
 
   correctWord =
+    chosenWord.toUpperCase() ||
     possibleSolutions[
       Math.floor(Math.random() * possibleSolutions.length)
     ].toUpperCase();
 
-  initializeBoard();
+  initializeBoard(rows, cols);
 };
 
-resetGame();
+document.addEventListener("DOMContentLoaded", () => {
+  // Check URL for payload from a generated link
+  const params = new URLSearchParams(window.location.search);
+  const urlSafeBase64 = params.get("payload");
+
+  if (!urlSafeBase64) {
+    resetGame();
+    return;
+  }
+
+  // Decode is and overwrite resetGame for custom word and length
+  const base64 = decodeURIComponent(urlSafeBase64);
+  const decoded = base64Decode(base64);
+
+  resetGame(NUMBER_OF_ATTEMPTS, decoded.length, decoded);
+});
 
 document.addEventListener("keydown", (event) => {
   event.preventDefault();
