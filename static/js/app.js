@@ -20,6 +20,7 @@ __webpack_require__.r(__webpack_exports__);
   \***********************/
 () {
 
+/* eslint-disable no-magic-numbers */
 var board = document.getElementById("board");
 var rows = 6; // Number of attempts/guesses the user has
 var cols = 5; // Length of the word

@@ -1,3 +1,4 @@
+/* eslint-disable no-magic-numbers */
 const board = document.getElementById("board");
 
 const rows = 6; // Number of attempts/guesses the user has
