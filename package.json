@@ -1,0 +1,30 @@
+{
+  "name": "make-your-own-wordle",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "flask": "flask --app app.py --debug run",
+    "dev": "npx mix watch"
+  },
+  "prettier": {
+    "plugins": [
+      "prettier-plugin-tailwindcss"
+    ]
+  },
+  "author": "Dalton",
+  "license": "MIT",
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "globals": "^17.0.0",
+    "laravel-mix": "^6.0.49",
+    "prettier": "^3.8.0",
+    "prettier-plugin-tailwindcss": "^0.7.2"
+  }
+}
