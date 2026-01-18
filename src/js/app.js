@@ -1,4 +1,13 @@
 /* eslint-disable no-magic-numbers */
+
+// These two arrays only work for the standard Wordle format of a 5-letter word
+// where possibleSolutions represents a subset of 2315 words that could act as the correctWord
+// legalGuesses is a much larger array of all words that are legal to guess
+// This ruleset will only be applied if the user generates a 5 letter Wordle, or is generating random games - for any other length,
+// invalid and nonsense strings will be valid
+import legalGuesses from "./legalGuesses";
+import possibleSolutions from "./possibleSolutions";
+
 const board = document.getElementById("board");
 
 const rows = 6; // Number of attempts/guesses the user has
@@ -8,9 +17,14 @@ let currentRow = 0;
 let currentCol = 0;
 let currentGuess = "";
 
-let correctWord = "FIERY";
+let correctWord =
+  possibleSolutions[
+    Math.floor(Math.random() * possibleSolutions.length)
+  ].toUpperCase();
 
 const initializeBoard = () => {
+  console.log(correctWord);
+
   const fragment = document.createDocumentFragment();
 
   for (let i = 0; i < rows; i++) {
@@ -31,8 +45,6 @@ const initializeBoard = () => {
 
   board.appendChild(fragment);
 };
-
-initializeBoard();
 
 const deleteLetter = () => {
   if (currentCol <= 0) return;
@@ -70,7 +82,17 @@ const fetchTargetTile = () => {
 };
 
 const submitGuess = () => {
+  // If the word is too short, ignore it
   if (currentGuess.length < cols) return;
+
+  // Only check for legal word guesses for standard 5 letter Wordles
+  if (cols === 5) {
+    const guessIsLegal =
+      possibleSolutions.includes(currentGuess.toLowerCase()) ||
+      legalGuesses.includes(currentGuess.toLowerCase());
+
+    if (!guessIsLegal) return;
+  }
 
   // Compares the current guess to the correct word
   for (let i = 0; i < cols; i++) {
@@ -92,6 +114,8 @@ const submitGuess = () => {
   currentCol = 0;
   currentGuess = "";
 };
+
+initializeBoard();
 
 document.addEventListener("keydown", (event) => {
   if (event.key === "Backspace") deleteLetter();
