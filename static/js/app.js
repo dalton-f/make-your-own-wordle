@@ -5042,6 +5042,7 @@ var submitGuess = function submitGuess() {
   if (currentRow >= NUMBER_OF_ATTEMPTS) {
     sweetalert2__WEBPACK_IMPORTED_MODULE_0___default().fire({
       title: "You lost!",
+      text: "The word was ".concat(correctWord),
       icon: "error",
       theme: "dark",
       width: 400,

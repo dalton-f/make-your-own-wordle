@@ -214,6 +214,7 @@ const submitGuess = () => {
   if (currentRow >= NUMBER_OF_ATTEMPTS) {
     Swal.fire({
       title: "You lost!",
+      text: `The word was ${correctWord}`,
       icon: "error",
       theme: "dark",
       width: 400,
