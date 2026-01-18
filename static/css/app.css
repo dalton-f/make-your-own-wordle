@@ -9,11 +9,9 @@
       "Courier New", monospace;
     --color-zinc-50: oklch(98.5% 0 0);
     --color-neutral-500: oklch(55.6% 0 0);
-    --color-neutral-600: oklch(43.9% 0 0);
     --color-neutral-700: oklch(37.1% 0 0);
     --color-neutral-900: oklch(20.5% 0 0);
     --spacing: 0.25rem;
-    --container-lg: 32rem;
     --text-3xl: 1.875rem;
     --text-3xl--line-height: calc(2.25 / 1.875);
     --font-weight-bold: 700;
@@ -199,9 +197,6 @@
   .w-full {
     width: 100%;
   }
-  .max-w-lg {
-    max-width: var(--container-lg);
-  }
   .items-center {
     align-items: center;
   }
@@ -220,9 +215,6 @@
   }
   .bg-neutral-900 {
     background-color: var(--color-neutral-900);
-  }
-  .p-14 {
-    padding: calc(var(--spacing) * 14);
   }
   .p-16 {
     padding: calc(var(--spacing) * 16);
@@ -253,6 +245,39 @@
     -webkit-user-select: none;
     -moz-user-select: none;
          user-select: none;
+  }
+  .data-\[state\=absent\]\:border-none {
+    &[data-state="absent"] {
+      --tw-border-style: none;
+      border-style: none;
+    }
+  }
+  .data-\[state\=absent\]\:bg-neutral-500 {
+    &[data-state="absent"] {
+      background-color: var(--color-neutral-500);
+    }
+  }
+  .data-\[state\=correct\]\:border-none {
+    &[data-state="correct"] {
+      --tw-border-style: none;
+      border-style: none;
+    }
+  }
+  .data-\[state\=correct\]\:bg-\[\#538d4e\] {
+    &[data-state="correct"] {
+      background-color: #538d4e;
+    }
+  }
+  .data-\[state\=present\]\:border-none {
+    &[data-state="present"] {
+      --tw-border-style: none;
+      border-style: none;
+    }
+  }
+  .data-\[state\=present\]\:bg-\[\#b59f3b\] {
+    &[data-state="present"] {
+      background-color: #b59f3b;
+    }
   }
 }
 @layer components {
@@ -285,6 +310,27 @@
     -webkit-user-select: none;
     -moz-user-select: none;
          user-select: none;
+    &[data-state="absent"] {
+      --tw-border-style: none;
+      border-style: none;
+    }
+    &[data-state="absent"] {
+      background-color: var(--color-neutral-500);
+    }
+    &[data-state="correct"] {
+      --tw-border-style: none;
+      border-style: none;
+    }
+    &[data-state="correct"] {
+      background-color: #538d4e;
+    }
+    &[data-state="present"] {
+      --tw-border-style: none;
+      border-style: none;
+    }
+    &[data-state="present"] {
+      background-color: #b59f3b;
+    }
     &[data-state="tbd"] {
       border-color: var(--color-neutral-500);
     }
