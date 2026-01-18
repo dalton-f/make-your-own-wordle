@@ -1,4 +1,5 @@
 /* eslint-disable no-magic-numbers */
+import Swal from "sweetalert2";
 
 // These two arrays only work for the standard Wordle format of a 5-letter word
 // where possibleSolutions represents a subset of 2315 words that could act as the correctWord
@@ -23,6 +24,10 @@ let correctWord =
   ].toUpperCase();
 
 const initializeBoard = () => {
+  console.log(correctWord);
+
+  board.innerHTML = "";
+
   const fragment = document.createDocumentFragment();
 
   for (let i = 0; i < rows; i++) {
@@ -79,9 +84,24 @@ const fetchTargetTile = () => {
   return targetTile;
 };
 
+const generateLink = (word) => {
+  console.log(word);
+};
+
 const submitGuess = () => {
   // If the word is too short, ignore it
-  if (currentGuess.length < cols) return;
+  if (currentGuess.length < cols) {
+    Swal.fire({
+      theme: "dark",
+      text: "Not enough letters!",
+      position: "top",
+      showConfirmButton: false,
+      timer: 1000,
+      width: 220,
+    });
+
+    return;
+  }
 
   // Only check for legal word guesses for standard 5 letter Wordles
   if (cols === 5) {
@@ -89,7 +109,18 @@ const submitGuess = () => {
       possibleSolutions.includes(currentGuess.toLowerCase()) ||
       legalGuesses.includes(currentGuess.toLowerCase());
 
-    if (!guessIsLegal) return;
+    if (!guessIsLegal) {
+      Swal.fire({
+        theme: "dark",
+        text: "Not in word list!",
+        position: "top",
+        showConfirmButton: false,
+        timer: 1000,
+        width: 220,
+      });
+
+      return;
+    }
   }
 
   // Track remaining letters in correctWord
@@ -126,15 +157,68 @@ const submitGuess = () => {
     }
   }
 
+  // Handle the sucess modal
+  if (currentGuess === correctWord) {
+    Swal.fire({
+      title: "You win!",
+      icon: "success",
+      theme: "dark",
+      width: 400,
+      showCancelButton: true,
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+      confirmButtonColor: "#279b4e",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Generate link",
+      cancelButtonText: "Play random",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Handle the link generation modal
+        Swal.fire({
+          title: "Make your own Wordle",
+          text: "Words can be of any length",
+          input: "text",
+          theme: "dark",
+          width: 400,
+          icon: "question",
+          confirmButtonColor: "#279b4e",
+          confirmButtonText: "Generate link",
+        }).then((result) => {
+          if (result.isConfirmed) generateLink(result.value);
+        });
+
+        // For safety, also reset the base game here in case the user someone closes out - they can still play
+        resetGame();
+      }
+
+      if (result.dismiss === Swal.DismissReason.cancel) resetGame();
+    });
+  }
+
   // Update row and column values to allow for the next guess
   currentRow++;
   currentCol = 0;
   currentGuess = "";
 };
 
-initializeBoard();
+const resetGame = () => {
+  currentCol = 0;
+  currentRow = 0;
+  currentGuess = "";
+
+  correctWord =
+    possibleSolutions[
+      Math.floor(Math.random() * possibleSolutions.length)
+    ].toUpperCase();
+
+  initializeBoard();
+};
+
+resetGame();
 
 document.addEventListener("keydown", (event) => {
+  event.preventDefault();
+
   if (event.key === "Backspace") deleteLetter();
 
   if (event.key === "Enter") submitGuess();
