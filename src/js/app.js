@@ -202,12 +202,65 @@ const submitGuess = () => {
         resetGame();
       }
     });
+
+    return;
   }
 
   // Update row and column values to allow for the next guess
   currentRow++;
   currentCol = 0;
   currentGuess = "";
+
+  if (currentRow >= NUMBER_OF_ATTEMPTS) {
+    Swal.fire({
+      title: "You lost!",
+      icon: "error",
+      theme: "dark",
+      width: 400,
+      showCancelButton: true,
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#279b4e",
+      confirmButtonText: "Play random",
+      cancelButtonText: "Generate link",
+      reverseButtons: true,
+    }).then((result) => {
+      if (result.isConfirmed) resetGame();
+
+      if (result.dismiss === Swal.DismissReason.cancel) {
+        // Handle the link generation modal
+        Swal.fire({
+          title: "Make your own Wordle",
+          text: "Words can be of any length",
+          input: "text",
+          inputValidator: (value) => {
+            if (!value) {
+              return "You need to write something!";
+            }
+
+            if (/\s/.test(value)) {
+              return "Spaces are not allowed. Enter a single word.";
+            }
+
+            if (!/^[A-Za-z]+$/.test(value)) {
+              return "Only letters are allowed. No spaces, numbers, or symbols.";
+            }
+          },
+          theme: "dark",
+          width: 400,
+          icon: "question",
+          confirmButtonColor: "#279b4e",
+          confirmButtonText: "Generate link",
+        }).then((result) => {
+          if (result.isConfirmed) generateLink(result.value);
+        });
+
+        // For safety, also reset the base game here in case the user someone closes out - they can still play
+        resetGame();
+      }
+    });
+  }
 };
 
 const base64Encode = (str) => {
@@ -226,11 +279,6 @@ const base64Decode = (base64) => {
 const generateLink = (word) => {
   const encodedData = base64Encode(word);
   const urlSafeData = encodeURIComponent(encodedData);
-
-  console.log(word);
-
-  console.log(encodedData);
-  console.log(urlSafeData);
 
   const url = new URL(window.location.href);
   url.searchParams.set("payload", urlSafeData);

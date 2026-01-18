@@ -5032,12 +5032,60 @@ var submitGuess = function submitGuess() {
         resetGame();
       }
     });
+    return;
   }
 
   // Update row and column values to allow for the next guess
   currentRow++;
   currentCol = 0;
   currentGuess = "";
+  if (currentRow >= NUMBER_OF_ATTEMPTS) {
+    sweetalert2__WEBPACK_IMPORTED_MODULE_0___default().fire({
+      title: "You lost!",
+      icon: "error",
+      theme: "dark",
+      width: 400,
+      showCancelButton: true,
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#279b4e",
+      confirmButtonText: "Play random",
+      cancelButtonText: "Generate link",
+      reverseButtons: true
+    }).then(function (result) {
+      if (result.isConfirmed) resetGame();
+      if (result.dismiss === (sweetalert2__WEBPACK_IMPORTED_MODULE_0___default().DismissReason).cancel) {
+        // Handle the link generation modal
+        sweetalert2__WEBPACK_IMPORTED_MODULE_0___default().fire({
+          title: "Make your own Wordle",
+          text: "Words can be of any length",
+          input: "text",
+          inputValidator: function inputValidator(value) {
+            if (!value) {
+              return "You need to write something!";
+            }
+            if (/\s/.test(value)) {
+              return "Spaces are not allowed. Enter a single word.";
+            }
+            if (!/^[A-Za-z]+$/.test(value)) {
+              return "Only letters are allowed. No spaces, numbers, or symbols.";
+            }
+          },
+          theme: "dark",
+          width: 400,
+          icon: "question",
+          confirmButtonColor: "#279b4e",
+          confirmButtonText: "Generate link"
+        }).then(function (result) {
+          if (result.isConfirmed) generateLink(result.value);
+        });
+
+        // For safety, also reset the base game here in case the user someone closes out - they can still play
+        resetGame();
+      }
+    });
+  }
 };
 var base64Encode = function base64Encode(str) {
   var bytes = new TextEncoder().encode(str);
@@ -5057,9 +5105,6 @@ var base64Decode = function base64Decode(base64) {
 var generateLink = function generateLink(word) {
   var encodedData = base64Encode(word);
   var urlSafeData = encodeURIComponent(encodedData);
-  console.log(word);
-  console.log(encodedData);
-  console.log(urlSafeData);
   var url = new URL(window.location.href);
   url.searchParams.set("payload", urlSafeData);
   window.location.href = url.toString();
