@@ -1,1 +1,15 @@
 @import "tailwindcss";
+
+@layer components {
+  .board {
+    @apply grid gap-2 p-4;
+  }
+
+  .row {
+    @apply flex justify-center gap-2;
+  }
+
+  .tile {
+    @apply flex size-16 items-center justify-center border-2 border-neutral-700 text-3xl leading-none font-bold uppercase select-none data-[state=tbd]:border-neutral-500;
+  }
+}

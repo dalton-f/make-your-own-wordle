@@ -1,13 +1,25 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="bg-neutral-900 text-zinc-50 antialiased">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Make your own Wordle</title>
+    <title>Make Your Own Wordle</title>
 
     <link rel="stylesheet" href="../static/css/app.css" />
 
     <script src="../static/js/app.js" defer></script>
   </head>
-  <body></body>
+  <body class="p-16">
+    <main class="mx-auto w-full max-w-lg">
+      <div class="board" id="board">
+        <div class="row">
+          <div class="tile" data-state="tbd">A</div>
+          <div class="tile"></div>
+          <div class="tile"></div>
+          <div class="tile"></div>
+          <div class="tile"></div>
+        </div>
+      </div>
+    </main>
+  </body>
 </html>
